@@ -1,6 +1,6 @@
 # PR testing: one Application per open PR labelled "preview" in a service repo.
 # Deploys apps/<svc>/preview with image tag = PR head commit SHA, in namespace <svc>-pr-<number>.
-# If preview/ has an Ingress, it is served at https://<head short sha>-<svc>-grader-sit.sittha.net.
+# If preview/ has an Ingress, it is served at https://pr-<number>-<svc>-grader-sit.sittha.net (stable per PR; image follows head SHA).
 # Needs: kubectl -n argocd create secret generic github-token --from-literal=token=<PAT>
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -51,7 +51,7 @@ spec:
               patch: |-
                 - op: replace
                   path: /spec/rules/0/host
-                  value: '{{.head_short_sha}}-{{.svc}}-grader-sit.sittha.net'
+                  value: 'pr-{{.number}}-{{.svc}}-grader-sit.sittha.net'
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{.svc}}-pr-{{.number}}'
