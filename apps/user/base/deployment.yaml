@@ -1,0 +1,27 @@
+# Image built by CI in github.com/cu-devclub/CUGrader-User. Gin app must listen on :8080.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      containers:
+        - name: user
+          image: ghcr.io/cu-devclub/cugrader-user
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: GIN_MODE
+              value: release
+          readinessProbe:
+            tcpSocket:
+              port: http

@@ -1,0 +1,37 @@
+# SIT and UAT: apps/<svc>/overlays/<env>/ -> Application <svc>-<env> in namespace cugrader-<env>, auto-synced.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: envs-auto
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/cu-devclub/CUGrader-infrastructure
+        revision: main
+        directories:
+          - path: apps/*/overlays/*
+          - path: apps/*/overlays/production
+            exclude: true # see envs-production.yaml
+  template:
+    metadata:
+      name: '{{index .path.segments 1}}-{{.path.basename}}'
+      labels:
+        env: '{{.path.basename}}'
+    spec:
+      project: cugrader
+      source:
+        repoURL: https://github.com/cu-devclub/CUGrader-infrastructure
+        targetRevision: main
+        path: '{{.path.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: 'cugrader-{{.path.basename}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

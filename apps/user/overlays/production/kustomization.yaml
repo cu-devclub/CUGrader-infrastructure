@@ -1,0 +1,8 @@
+resources:
+  - ../../base
+images:
+  - name: ghcr.io/cu-devclub/cugrader-user
+    newTag: latest # sit: CI bumps on merge to main. uat/production: promote via PR.
+replicas:
+  - name: user
+    count: 2

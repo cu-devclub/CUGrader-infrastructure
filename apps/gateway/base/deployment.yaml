@@ -1,0 +1,31 @@
+# Image built by CI in github.com/cu-devclub/CUGrader-Gateway:
+# FROM apache/apisix, standalone mode (config_provider: yaml), routes baked into apisix.yaml.
+# Routes should reach upstreams as <svc>.${{UPSTREAM_NAMESPACE}}.svc.cluster.local so one image works in every env.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: ghcr.io/cu-devclub/cugrader-gateway
+          ports:
+            - name: http
+              containerPort: 9080
+          env:
+            - name: UPSTREAM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          readinessProbe:
+            tcpSocket:
+              port: http

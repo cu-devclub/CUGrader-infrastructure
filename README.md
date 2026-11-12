@@ -5,9 +5,18 @@ GitOps repo for CUGrader, deployed with [Argo CD](https://argo-cd.readthedocs.io
 ## Layout
 
 - `bootstrap/root.yaml` – root Application; apply once by hand.
-- `argocd/` – Argo CD config managed by the root app (AppProject, ApplicationSet).
-- `apps/<name>/` – one directory per service. Plain manifests, Kustomize, or a Helm chart.
-  Each becomes an Application `<name>` in namespace `<name>`.
+- `argocd/` – Argo CD config managed by the root app:
+  - `envs-auto.yaml` – SIT and UAT, auto-sync.
+  - `envs-production.yaml` – production, manual sync.
+  - `pr-previews.yaml` – one env per service-repo PR labelled `preview`.
+- `apps/<svc>/` – one directory per service (`gateway` = APISIX, `user` = Go Gin). See `apps/README.md`.
+
+## Release flow
+
+1. PR in a service repo with label `preview` → CI pushes `ghcr.io/cu-devclub/cugrader-<svc>:<sha>` → Argo CD deploys `<svc>-pr-<n>`.
+2. Merge to `main` → CI pushes image and bumps `newTag` in `apps/<svc>/overlays/sit/` → SIT auto-syncs.
+3. PR here copying the tag into `overlays/uat/` → UAT auto-syncs.
+4. PR here copying the tag into `overlays/production/` → click Sync in Argo CD.
 
 ## Bootstrap
 
@@ -22,4 +31,7 @@ If the repo is private, register it first:
 
 ## Add a service
 
-Create `apps/<name>/` with manifests, push to `main`. Argo CD picks it up automatically.
+Copy `apps/user/` to `apps/<svc>/`, rename, push to `main`. For PR envs, add the repo to the `list` in `argocd/pr-previews.yaml`.
+
+PR envs need a GitHub token secret:
+`kubectl -n argocd create secret generic github-token --from-literal=token=<PAT>`

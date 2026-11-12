@@ -1,0 +1,53 @@
+# PR testing: one Application per open PR labelled "preview" in a service repo.
+# Deploys apps/<svc>/preview with image tag = PR head commit SHA, in namespace <svc>-pr-<number>.
+# Needs: kubectl -n argocd create secret generic github-token --from-literal=token=<PAT>
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: pr-previews
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - matrix:
+        generators:
+          - list:
+              elements:
+                - svc: gateway
+                  repo: CUGrader-Gateway
+                - svc: user
+                  repo: CUGrader-User
+          - pullRequest:
+              github:
+                owner: cu-devclub
+                repo: '{{.repo}}'
+                labels:
+                  - preview
+                tokenRef:
+                  secretName: github-token
+                  key: token
+              requeueAfterSeconds: 120
+  template:
+    metadata:
+      name: '{{.svc}}-pr-{{.number}}'
+      labels:
+        env: preview
+    spec:
+      project: cugrader
+      source:
+        repoURL: https://github.com/cu-devclub/CUGrader-infrastructure
+        targetRevision: main
+        path: 'apps/{{.svc}}/preview'
+        kustomize:
+          images:
+            - 'ghcr.io/cu-devclub/cugrader-{{.svc}}:{{.head_sha}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{.svc}}-pr-{{.number}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

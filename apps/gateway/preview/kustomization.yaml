@@ -1,0 +1,14 @@
+# PR preview gateway has no backends in its own namespace; route to SIT instead.
+# Image tag is set per PR by argocd/pr-previews.yaml.
+resources:
+  - ../base
+patches:
+  - target:
+      kind: Deployment
+      name: gateway
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env/0
+        value:
+          name: UPSTREAM_NAMESPACE
+          value: cugrader-sit

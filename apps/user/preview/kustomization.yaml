@@ -1,0 +1,3 @@
+# Image tag is set per PR by argocd/pr-previews.yaml.
+resources:
+  - ../base

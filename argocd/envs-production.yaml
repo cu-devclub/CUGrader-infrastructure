@@ -1,9 +1,8 @@
-# One Argo CD Application per directory in apps/.
-# apps/<name>/ (plain manifests, kustomization.yaml, or Helm chart) deploys to namespace <name>.
+# Production: same as envs-auto but manual sync (click Sync in Argo CD after the tag bump is merged).
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: apps
+  name: envs-production
   namespace: argocd
 spec:
   goTemplate: true
@@ -13,10 +12,12 @@ spec:
         repoURL: https://github.com/cu-devclub/CUGrader-infrastructure
         revision: main
         directories:
-          - path: apps/*
+          - path: apps/*/overlays/production
   template:
     metadata:
-      name: '{{.path.basename}}'
+      name: '{{index .path.segments 1}}-production'
+      labels:
+        env: production
     spec:
       project: cugrader
       source:
@@ -25,10 +26,7 @@ spec:
         path: '{{.path.path}}'
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{.path.basename}}'
+        namespace: cugrader-production
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
         syncOptions:
           - CreateNamespace=true
