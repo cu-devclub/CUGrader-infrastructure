@@ -1,0 +1,19 @@
+# Public URL for the PR env. Host is set per PR by argocd/pr-previews.yaml
+# to <short sha>-<svc>-grader-sit.sittha.net (Cloudflare Tunnel -> ingress controller).
+# No ingressClassName: uses the cluster's default IngressClass.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: preview
+spec:
+  rules:
+    - host: preview.invalid
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  name: http

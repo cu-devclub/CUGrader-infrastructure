@@ -2,6 +2,7 @@
 # Image tag is set per PR by argocd/pr-previews.yaml.
 resources:
   - ../base
+  - ingress.yaml
 patches:
   - target:
       kind: Deployment

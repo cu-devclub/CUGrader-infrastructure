@@ -1,5 +1,6 @@
 # PR testing: one Application per open PR labelled "preview" in a service repo.
 # Deploys apps/<svc>/preview with image tag = PR head commit SHA, in namespace <svc>-pr-<number>.
+# If preview/ has an Ingress, it is served at https://<head short sha>-<svc>-grader-sit.sittha.net.
 # Needs: kubectl -n argocd create secret generic github-token --from-literal=token=<PAT>
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -42,6 +43,15 @@ spec:
         kustomize:
           images:
             - 'ghcr.io/cu-devclub/cugrader-{{.svc}}:{{.head_sha}}'
+          # Only services whose preview/ has an Ingress get a URL. Single-level subdomain so
+          # Cloudflare's free *.sittha.net certificate covers it.
+          patches:
+            - target:
+                kind: Ingress
+              patch: |-
+                - op: replace
+                  path: /spec/rules/0/host
+                  value: '{{.head_short_sha}}-{{.svc}}-grader-sit.sittha.net'
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{.svc}}-pr-{{.number}}'
