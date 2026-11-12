@@ -13,7 +13,7 @@ GitOps repo for CUGrader, deployed with [Argo CD](https://argo-cd.readthedocs.io
 
 ## Release flow
 
-1. PR in a service repo with label `preview` → CI pushes `ghcr.io/cu-devclub/cugrader-<svc>:<sha>` → Argo CD deploys `<svc>-pr-<n>`. Gateway previews are served at `https://<head short sha>-gateway-grader-sit.sittha.net`.
+1. PR in a service repo with label `preview` → CI pushes `ghcr.io/cu-devclub/cugrader-<svc>:<sha>` → Argo CD deploys `<svc>-pr-<n>`. Gateway previews are served at `https://pr-<number>-gateway-grader-sit.sittha.net`.
 2. Merge to `main` → CI pushes image and bumps `newTag` in `apps/<svc>/overlays/sit/` → SIT auto-syncs.
 3. PR here copying the tag into `overlays/uat/` → UAT auto-syncs.
 4. PR here copying the tag into `overlays/production/` → click Sync in Argo CD.
