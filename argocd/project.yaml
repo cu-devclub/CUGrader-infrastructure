@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: cugrader
+  namespace: argocd
+spec:
+  description: CUGrader workloads
+  sourceRepos:
+    - https://github.com/cu-devclub/CUGrader-infrastructure
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: '*'
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
